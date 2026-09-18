@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Build / cache
+dist/
+.output/
+.nitro/
+.tanstack/
+.vite/
+*.local
+
+# Logs / OS
+*.log
+npm-debug.log*
+.DS_Store
+
+# Local backups and research dumps (do not publish)
+backup/
+artifacts/
+
+# Local screenshots / host project metadata
+screenshots/
+.vercel/
+dot-project_id.txt
+dot-prettierrc.txt
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+
+# Test / smoke outputs
+/tmp/
+playwright-report/
+test-results/

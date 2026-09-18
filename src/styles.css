@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --color-bg: #000000;
+  --color-surface: #1f2228;
+  --color-elevated: #2a2e36;
+  --color-fg: #fdf4e3;
+  --color-muted: #868686;
+  --color-subtle: #6b6b6b;
+  --color-border: #333a4b;
+  --color-border-strong: #4a5160;
+  --color-accent: #e0400a;
+  --color-accent-fg: #fdf4e3;
+  --color-focus: #3b82f6;
+  --color-warn: #e0400a;
+  --color-danger: #e0400a;
+  --color-ok: #3b82f6;
+  --color-letter: #fdf4e3;
+  --color-stim-red: #e0400a;
+  --color-stim-blue: #3b82f6;
+  --color-moon: #fdf4e3;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  --shadow-soft: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --sky-opacity: 0.9;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html,
+  body,
+  #app {
+    min-height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.app-root {
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-bg) 28%, transparent) 0%,
+      color-mix(in oklab, var(--color-bg) 48%, transparent) 42%,
+      color-mix(in oklab, var(--color-bg) 82%, transparent) 100%
+    ),
+    url("/sky-hub.jpg");
+  background-size: cover, cover;
+  background-position: 12% 38%, 12% 38%;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat;
+}
+
+.lab-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.panel {
+  background: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.likert-track {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
