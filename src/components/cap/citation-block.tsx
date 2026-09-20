@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react";
 import type { InstrumentId } from "@/lib/cap/types";
 import { COPYRIGHT_NOTES, INSTRUMENT_CITATIONS } from "@/lib/cap/citations";
 
@@ -14,11 +15,13 @@ export function CitationBlock({ id }: { id: InstrumentId }) {
                 {" "}
                 <a
                   href={c.url}
-                  className="whitespace-nowrap underline decoration-border-strong underline-offset-4 hover:text-fg"
+                  className="interactive inline-flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-muted hover:bg-elevated hover:text-accent"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Open source in a new tab"
+                  title="Open source"
                 >
-                  Open source
+                  <ExternalLink className="size-3.5" aria-hidden />
                 </a>
               </>
             ) : null}

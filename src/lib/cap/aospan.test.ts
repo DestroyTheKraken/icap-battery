@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { aospanMathCap, aospanScoredSizes } from "./aospan.ts";
+import { aospanLetterOk, aospanMathCap, aospanScoredSizes } from "./aospan.ts";
 
 test("aospanMathCap is mean + 2.5 SD", () => {
   assert.equal(aospanMathCap([]), 8000);
@@ -17,4 +17,12 @@ test("scored sizes are three of each 3–7", () => {
   for (const s of [3, 4, 5, 6, 7]) {
     assert.equal(sizes.filter((x) => x === s).length, 3);
   }
+});
+
+test("aospanLetterOk requires exact serial order", () => {
+  assert.equal(aospanLetterOk(["F", "H"], ["F", "H"]), true);
+  assert.equal(aospanLetterOk(["F", "H"], ["H", "F"]), false);
+  assert.equal(aospanLetterOk(["F", "H"], ["F"]), false);
+  assert.equal(aospanLetterOk(["F", "H"], ["F", "H", "J"]), false);
+  assert.equal(aospanLetterOk([], []), false);
 });

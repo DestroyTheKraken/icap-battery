@@ -1,5 +1,6 @@
 import type { InstrumentId } from "./types";
 
+/** Administration order for the live battery. Do not reorder for UI. */
 export const BATTERY_ORDER: InstrumentId[] = [
   "hexaco",
   "icar",
@@ -9,10 +10,35 @@ export const BATTERY_ORDER: InstrumentId[] = [
   "interest",
 ];
 
+/** Site-wide display order for the four iCAP arms when shown together. */
+export type CapArm = "Interest" | "Cognition" | "Affect" | "Process";
+
+export const ARM_DISPLAY_ORDER: CapArm[] = ["Interest", "Cognition", "Affect", "Process"];
+
+export const ARM_LETTER: Record<CapArm, string> = {
+  Interest: "I",
+  Cognition: "C",
+  Affect: "A",
+  Process: "P",
+};
+
+/**
+ * Instrument order for hub/Sources/profile UI (I → C → A → P).
+ * Distinct from BATTERY_ORDER, which is how the sitting is administered.
+ */
+export const DISPLAY_INSTRUMENT_ORDER: InstrumentId[] = [
+  "interest",
+  "icar",
+  "hexaco",
+  "aospan",
+  "flanker",
+  "dccs",
+];
+
 export const INSTRUMENT_META: Record<
   InstrumentId,
   {
-    arm: "Affect" | "Cognition" | "Process" | "Interest";
+    arm: CapArm;
     title: string;
     plainTitle: string;
     short: string;
@@ -24,27 +50,27 @@ export const INSTRUMENT_META: Record<
 > = {
   hexaco: {
     arm: "Affect",
-    title: "HEXACO-PI-R 100",
+    title: "IPIP six-factor work-style inventory",
     plainTitle: "Personality",
     short: "Personality",
-    duration: "20–25 min",
-    items: "100 statements",
-    construct: "Six-factor personality plus altruism (4 items per facet)",
-    why: "You rate 100 everyday statements about yourself. There are no right answers. This is here because a job is not only tasks — it is people, rules, stress, and new ideas every day. We chose a full, well-studied personality questionnaire so you can see whether a path will fit who you already are, not who a posting hopes you will become.",
+    duration: "10–15 min",
+    items: "60 statements",
+    construct: "Six work-style domains (Honesty-Humility through Openness)",
+    why: "You rate 60 everyday statements about yourself. There are no right answers. This is here because a job is not only tasks — it is people, rules, stress, and new ideas every day. We chose a public-domain six-factor inventory so you can see whether a path will fit who you already are.",
   },
   icar: {
     arm: "Cognition",
-    title: "ICAR-60",
+    title: "iCAP problem-solving set",
     plainTitle: "Problem solving",
     short: "Ability",
     duration: "45–60 min (untimed)",
     items: "60 puzzles",
-    construct: "Series, verbal, matrix, 3D rotation — untimed power test",
+    construct: "Series, verbal, matrix, cube rotation — untimed",
     why: "Sixty puzzles with words, numbers, patterns, and turning objects in space. No clock. This is here so you can tell a long, hard program from a mismatch — and from a path that will bore you. We chose four kinds of puzzles, not one parlor trick, so a single question type cannot define you.",
   },
   aospan: {
     arm: "Process",
-    title: "Automated O-Span",
+    title: "Operation span procedure (Unsworth et al., 2005)",
     plainTitle: "Working memory",
     short: "Working memory",
     duration: "~20 min",
@@ -54,17 +80,17 @@ export const INSTRUMENT_META: Record<
   },
   flanker: {
     arm: "Process",
-    title: "Flanker (arrows)",
+    title: "Arrow flanker (Eriksen method)",
     plainTitle: "Focus in noise",
     short: "Inhibition",
     duration: "8–12 min",
     items: "80 scored trials",
     construct: "Selective attention / conflict cost",
-    why: "Five arrows appear. You answer the one in the middle and ignore the rest. This is here because a lot of real work is noisy. We chose a simple, well-studied attention task so the result means one thing: can you still pick the right move when the room is loud.",
+    why: "Five arrows appear. You answer the one in the middle and ignore the rest. This is here because a lot of real work is noisy. We chose a simple, well-studied attention method so the result means one thing: can you still pick the right move when the room is loud.",
   },
   dccs: {
     arm: "Process",
-    title: "Dimensional Change Card Sort",
+    title: "Dimensional card-sort (Zelazo method)",
     plainTitle: "Switching gears",
     short: "Set shifting",
     duration: "6–8 min",
@@ -84,10 +110,7 @@ export const INSTRUMENT_META: Record<
   },
 };
 
-export const ARM_COPY: Record<
-  "Affect" | "Cognition" | "Process" | "Interest",
-  { lead: string }
-> = {
+export const ARM_COPY: Record<CapArm, { lead: string }> = {
   Affect: {
     lead: "Career discovery starts with who you already are. If the daily life of a job fights your nature, you will not last — even if you are qualified on paper.",
   },
@@ -103,4 +126,4 @@ export const ARM_COPY: Record<
 };
 
 export const BATTERY_DURATION =
-  "About 2–2½ hours. Untimed except working memory and focus-in-noise.";
+  "Plan about 90 to 180 minutes for the full sitting. Some parts are timed; others let you work at your own pace.";

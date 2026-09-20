@@ -43,7 +43,7 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
   };
 
   return (
-    <article className="panel rounded-[var(--radius-xl)] border-2 border-accent/70 p-5 md:p-7">
+    <article className="panel panel-accent rounded-[var(--radius-xl)] border-2 border-accent/70 p-5 md:p-7">
       <p className="text-xs uppercase tracking-[0.22em] text-accent">What's next</p>
       <h2 className="mt-2 font-display text-3xl md:text-4xl">Take the profile to a chat.</h2>
       <p className="mt-3 max-w-prose text-sm text-muted">
@@ -110,7 +110,7 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
                     href={d.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-sm)] border border-border-strong px-3 text-sm text-fg hover:bg-elevated"
+                    className="interactive inline-flex h-11 items-center gap-2 rounded-[var(--radius-sm)] border border-border-strong px-3 text-sm text-fg hover:border-accent/45 hover:bg-elevated"
                   >
                     {d.name}
                     <ExternalLink className="size-3.5 text-muted" />

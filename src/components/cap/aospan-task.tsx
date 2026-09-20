@@ -7,6 +7,7 @@ import {
   AOSPAN_LETTER_MS,
   AOSPAN_LETTER_PRAC,
   AOSPAN_MATH_PRAC_N,
+  aospanLetterOk,
   aospanMathCap,
   aospanScoredSizes,
 } from "@/lib/cap/aospan";
@@ -78,17 +79,22 @@ export function AospanTask({ onDone }: { onDone: (r: InstrumentResult) => void }
   const mathHitsRef = useRef(0);
   const mathOpsRef = useRef(0);
   const mathRTsRef = useRef<number[]>([]);
+  /** Snapshot of letters for this trial — used so recall scoring cannot read a stale state. */
+  const expectedLettersRef = useRef<string[]>([]);
 
   const setSize = letters.length;
 
   const beginTrial = (nextMode: Mode, size: number, nextBlock: Block) => {
     timedOut.current = false;
     solvedRef.current = false;
-    setLetters(shuffle([...LETTERS]).slice(0, size));
+    const nextLetters = shuffle([...LETTERS]).slice(0, size);
+    expectedLettersRef.current = nextLetters;
+    setLetters(nextLetters);
     setMaths(Array.from({ length: size }, () => makeMath()));
     setStep(0);
     setRecalled([]);
     setMathOk([]);
+    setFeedback("");
     setMode(nextMode);
     setBlock(nextBlock);
     setPhase("run");
@@ -236,14 +242,16 @@ export function AospanTask({ onDone }: { onDone: (r: InstrumentResult) => void }
   };
 
   const finishRecall = () => {
-    const letterOk =
-      recalled.length === letters.length && recalled.every((ch, idx) => ch === letters[idx]);
+    const expected = expectedLettersRef.current;
+    const letterOk = aospanLetterOk(expected, recalled);
     const mathAll = mode === "L" ? true : mathOk.length > 0 && mathOk.every(Boolean);
     if (block === "main") {
+      // Scored trials: clear any leftover practice feedback so it cannot flash "Letters missed".
+      setFeedback("");
       completeTrial({
-        setSize,
-        letters,
-        recalled,
+        setSize: expected.length,
+        letters: expected,
+        recalled: [...recalled],
         mathOk: mathAll,
         letterOk,
       });
@@ -336,12 +344,34 @@ export function AospanTask({ onDone }: { onDone: (r: InstrumentResult) => void }
   }
 
   if (phase === "recall") {
+    const scoredProgress = (trial + 1) / sizes.length;
     return (
       <section className="mx-auto max-w-md space-y-4 text-center">
-        <p className="text-sm text-muted">
-          {block === "main" ? `Scored recall · set ${trial + 1} / ${sizes.length}` : "Practice recall"}{" "}
-          — select letters in order
-        </p>
+        {block === "main" ? (
+          <div className="space-y-2 text-left">
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span>Scored recall · select letters in order</span>
+              <span className="tabular-nums">
+                {trial + 1} / {sizes.length}
+              </span>
+            </div>
+            <div
+              className="h-2 overflow-hidden rounded-full bg-border"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={sizes.length}
+              aria-valuenow={trial + 1}
+              aria-label={`Scored set ${trial + 1} of ${sizes.length}`}
+            >
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-300"
+                style={{ width: `${Math.min(100, scoredProgress * 100)}%` }}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted">Practice recall — select letters in order</p>
+        )}
         <div className="min-h-12 rounded-[var(--radius-md)] border border-border bg-elevated px-3 py-2 font-mono text-xl tracking-[0.3em]">
           {recalled.join(" ") || "—"}
         </div>
@@ -349,8 +379,11 @@ export function AospanTask({ onDone }: { onDone: (r: InstrumentResult) => void }
           {LETTERS.map((L) => (
             <button
               key={L}
-              onClick={() => recalled.length < 7 && setRecalled((r) => [...r, L])}
-              className="h-12 rounded-[var(--radius-sm)] border border-border bg-surface font-mono text-lg hover:border-accent"
+              onClick={() =>
+                recalled.length < expectedLettersRef.current.length &&
+                setRecalled((r) => [...r, L])
+              }
+              className="choice-tile h-12 rounded-[var(--radius-sm)] border border-border bg-surface font-mono text-lg"
             >
               {L}
             </button>
@@ -370,9 +403,11 @@ export function AospanTask({ onDone }: { onDone: (r: InstrumentResult) => void }
     return (
       <section className="grid min-h-[40vh] place-items-center gap-6">
         {block !== "main" && <PracticeBanner>Practice · not scored</PracticeBanner>}
-        <p className="font-display text-2xl">{feedback || "Next"}</p>
         {block !== "main" ? (
-          <Button onClick={() => nextRef.current()}>Continue</Button>
+          <>
+            <p className="font-display text-2xl">{feedback || "Next"}</p>
+            <Button onClick={() => nextRef.current()}>Continue</Button>
+          </>
         ) : (
           <p className="text-xs text-subtle">Continuing…</p>
         )}

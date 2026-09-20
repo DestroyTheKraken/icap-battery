@@ -40,6 +40,7 @@ export function scoreHexaco(responses: number[]): HexacoScores {
   return {
     factors,
     facets,
+    // Altruism interstitial is not part of the 60-item IPIP domain form.
     altruism: mean({ s: altS, n: altN }),
     responses,
   };

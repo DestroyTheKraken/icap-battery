@@ -16,7 +16,7 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
   const [phase, setPhase] = useState<"intro" | "practice" | "ready" | "run">("intro");
   const [pi, setPi] = useState(0);
   const [i, setI] = useState(0);
-  const [responses, setResponses] = useState<number[]>(() => Array(100).fill(0));
+  const [responses, setResponses] = useState<number[]>(() => Array(HEXACO_ITEMS.length).fill(0));
 
   const likert = (onPick: (v: number) => void) => (
     <div className="likert-track">
@@ -25,7 +25,7 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
           key={opt.v}
           onClick={() => onPick(opt.v)}
           className={cn(
-            "flex min-h-20 flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-border bg-surface px-2 py-3 text-center text-xs text-muted hover:border-accent hover:text-fg",
+            "choice-tile flex min-h-20 flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-border bg-surface px-2 py-3 text-center text-xs text-muted hover:text-fg",
           )}
         >
           <span className="font-display text-lg text-fg">{opt.v}</span>
@@ -46,12 +46,12 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
         <p>
           You will see statements about yourself. Rate how much you agree, from 1 (strongly
           disagree) to 5 (strongly agree). There are no right answers. First impression is usually
-          best. The published form is HEXACO-PI-R 100 (authors: 20–25 minutes).
+          best. Sixty statements take most people about 10–15 minutes.
         </p>
         <p>
           Two unscored practice items come first so you can feel the scale. The scored inventory is
-          the published HEXACO-PI-R 100 (all 100 statements). Nothing is recorded until you finish
-          practice and start the scored block.
+          60 public-domain IPIP statements. Nothing is recorded until you finish practice and start
+          the scored block.
         </p>
         <CitationBlock id="hexaco" />
       </InstrumentIntro>

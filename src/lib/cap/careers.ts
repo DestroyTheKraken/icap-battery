@@ -1,5 +1,5 @@
-import { RIASEC_LABEL, RIASEC_ORDER } from "./interest-items";
-import type { CapSession } from "./types";
+import { RIASEC_LABEL, RIASEC_ORDER } from "./interest-items.ts";
+import type { CapSession } from "./types.ts";
 
 export interface Occupation {
   title: string;
@@ -113,9 +113,12 @@ export function cautionNotes(session: CapSession | null): string[] {
       );
     }
   }
-  if (span && span.absolute <= 8) {
+  if (
+    span &&
+    (typeof span.mathAccuracy !== "number" || span.mathAccuracy < 0.85 || span.absolute <= 8)
+  ) {
     notes.push(
-      "Working-memory score is modest. High dual-load jobs (air traffic, ER charge nurse, pit-trading) will feel expensive. Prefer sequential, checkable work.",
+      "Working memory is unusable or modest for this session. Prefer sequential, checkable work; high dual-load jobs will feel expensive.",
     );
   }
   if (flank && flank.costMs >= 80) {
@@ -125,7 +128,7 @@ export function cautionNotes(session: CapSession | null): string[] {
   }
   if (icar && icar.max && icar.total / icar.max < 0.4) {
     notes.push(
-      "ICAR is in a lower band. Job Zone 5 paths (medicine, law, research faculty) are not closed, but they will cost more years of scaffolding. Zone 2–3 trades and applied technician roles are a more honest first search.",
+      "Problem-solving score is low THIS SESSION. Do not treat it as an IQ score. Job Zone 5 is not closed; it may need more scaffolding.",
     );
   }
   if (hex && (hex.factors.Emotionality ?? 0) >= 4.2) {

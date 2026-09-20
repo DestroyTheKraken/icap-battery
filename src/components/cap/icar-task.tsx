@@ -64,7 +64,7 @@ const PRACTICE_ITEMS: IcarItem[] = [
   {
     id: "PR.rot",
     kind: "rotation",
-    prompt: "Practice. Which option is a rotation of the target die (not a mirror)?",
+    prompt: "Practice. Which option is a rotation of the target cube (not a mirror)?",
     options: ["A", "B", "C", "D", "E", "F", "G", "H"],
     answer: 4,
     figural: "rotation",
@@ -102,7 +102,7 @@ function ItemView({
       {item.figural === "rotation" && (
         <div className="flex flex-col items-center gap-3">
           <RotationFigure item={item} />
-          <p className="text-xs text-subtle">Target die — cream faces, black pips</p>
+          <p className="text-xs text-subtle">Target cube — each face has a different mark</p>
         </div>
       )}
       <div
@@ -113,29 +113,30 @@ function ItemView({
       >
         {item.options.map((opt, idx) => {
           const n = idx + 1;
+          const matrixFigure = item.figural === "matrix" && n <= 6;
+          const matrixText = item.figural === "matrix" && n > 6;
+          const rotationFigure = item.figural === "rotation";
           return (
             <button
               key={opt + n}
               onClick={() => setSelected(n)}
               className={cn(
-                "flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] border px-3 py-2 text-left text-sm",
-                item.figural === "rotation" && "min-h-28 flex-col py-3",
+                "choice-tile flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] border px-3 py-2 text-left text-sm",
+                rotationFigure && "min-h-28 flex-col py-3",
+                matrixText && "min-h-12",
                 selected === n
-                  ? "border-accent bg-elevated text-fg"
-                  : "border-border bg-surface text-muted hover:border-border-strong hover:text-fg",
+                  ? "is-selected border-accent bg-elevated text-fg"
+                  : "border-border bg-surface text-muted hover:text-fg",
               )}
             >
-              {item.figural === "matrix" && n <= 6 && (
-                <MatrixFigure item={item} choice={n} compact />
-              )}
-              {item.figural === "rotation" && n <= 8 && (
-                <RotationFigure item={item} choice={n} />
-              )}
-              <span>
-                <span className="mr-2 font-mono text-xs text-subtle">
+              {matrixFigure && <MatrixFigure item={item} choice={n} compact />}
+              {rotationFigure && <RotationFigure item={item} choice={n} />}
+              <span className="inline-flex items-center gap-2">
+                <span className="font-mono text-xs text-subtle">
                   {String.fromCharCode(64 + n)}
                 </span>
-                {item.figural ? "" : opt}
+                {/* Matrix A–F figures only; G/H text like series. Rotation is figures only. */}
+                {!item.figural || matrixText ? <span>{` ${opt}`}</span> : null}
               </span>
             </button>
           );
@@ -165,19 +166,19 @@ export function IcarTask({ onDone }: { onDone: (r: InstrumentResult) => void }) 
       >
         <p>
           Four item types: letter/number series, verbal reasoning, matrix completion, and cube
-          rotation. Untimed power test — 60 items. Most people need 45–60 minutes; spatial items
-          take longer. Prefer “I don’t know” over a wild guess.
+          rotation. Untimed — 60 puzzles. Most people need 45–60 minutes; spatial items take
+          longer. Prefer “I don’t know” over a wild guess.
         </p>
         <p>
-          Rotation items use a <strong className="text-fg">standard six-sided die</strong> (pips
-          1–6; opposite faces sum to 7). Choose the option that is a{" "}
-          <strong className="text-fg">rotation</strong> of the target — the same die turned in
-          space, not a mirror.
+          Rotation items use cubes with{" "}
+          <strong className="text-fg">a different mark on each side</strong> (Greek letters Α–Ζ
+          here). Choose the option that could be a{" "}
+          <strong className="text-fg">rotation</strong> of the target cube — not a mirror.
         </p>
         <GlyphLegend />
         <p className="text-sm">
-          One practice item of each type comes first (not scored). Series and verbal items are from
-          the ICAR project; matrix and die figures here are local analogues.
+          One practice item of each type comes first (not scored). Series, verbal, and figural
+          items are original to iCAP.
         </p>
         <CitationBlock id="icar" />
       </InstrumentIntro>

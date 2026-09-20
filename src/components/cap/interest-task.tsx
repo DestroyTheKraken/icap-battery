@@ -23,7 +23,7 @@ export function InterestTask({ onDone }: { onDone: (r: InstrumentResult) => void
           key={opt.v}
           onClick={() => onPick(opt.v)}
           className={cn(
-            "flex min-h-20 flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-border bg-surface px-2 py-3 text-center text-xs text-muted hover:border-accent hover:text-fg",
+            "choice-tile flex min-h-20 flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] border border-border bg-surface px-2 py-3 text-center text-xs text-muted hover:text-fg",
           )}
         >
           <span className="font-display text-lg text-fg">{opt.v}</span>

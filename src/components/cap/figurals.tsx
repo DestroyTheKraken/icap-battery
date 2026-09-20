@@ -1,9 +1,9 @@
 import type { IcarItem } from "@/lib/cap/icar-items";
 import {
-  cellToUV,
   cubeOptions,
+  faceGlyph,
+  FACE_GLYPHS,
   makeCube,
-  pipCells,
   type CubeFaces,
 } from "@/lib/cap/cube";
 
@@ -136,20 +136,36 @@ function map(axis: Axis, u: number, v: number) {
   };
 }
 
-function Pips({ n, axis, rx, ry }: { n: number; axis: Axis; rx: number; ry: number }) {
+/** Center glyph on a foreshortened face (unique mark per face). */
+function FaceMark({
+  n,
+  axis,
+  fontSize,
+}: {
+  n: number;
+  axis: Axis;
+  fontSize: number;
+}) {
+  const p = map(axis, 0.5, 0.5);
   return (
-    <>
-      {pipCells(n).map(([col, row], i) => {
-        const [u, v] = cellToUV(col, row);
-        const p = map(axis, u, v);
-        return <ellipse key={i} cx={p.x} cy={p.y} rx={rx} ry={ry} fill={INK} />;
-      })}
-    </>
+    <text
+      x={p.x}
+      y={p.y}
+      textAnchor="middle"
+      dominantBaseline="central"
+      fill={INK}
+      fontSize={fontSize}
+      fontFamily="ui-sans-serif, system-ui, 'Segoe UI', sans-serif"
+      fontWeight={700}
+    >
+      {faceGlyph(n)}
+    </text>
   );
 }
 
 function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
-  const label = `die ${cube.U} on top, ${cube.F} in front, ${cube.R} on the right`;
+  const label = `cube ${faceGlyph(cube.U)} on top, ${faceGlyph(cube.F)} in front, ${faceGlyph(cube.R)} on the right`;
+  const fs = size >= 120 ? 14 : size >= 90 ? 11 : 9;
   return (
     <svg
       viewBox="0 0 88 92"
@@ -161,9 +177,9 @@ function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
       <polygon points="44,8 80,28 44,48 8,28" fill={FACE} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="8,28 44,48 44,84 8,64" fill={FACE_F} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="44,48 80,28 80,64 44,84" fill={FACE_R} stroke={EDGE} strokeWidth="1.4" />
-      <Pips n={cube.U} axis={TOP} rx={6.2} ry={3.4} />
-      <Pips n={cube.F} axis={FRONT} rx={5.2} ry={5.6} />
-      <Pips n={cube.R} axis={RIGHT} rx={5.2} ry={5.6} />
+      <FaceMark n={cube.U} axis={TOP} fontSize={fs} />
+      <FaceMark n={cube.F} axis={FRONT} fontSize={fs} />
+      <FaceMark n={cube.R} axis={RIGHT} fontSize={fs} />
     </svg>
   );
 }
@@ -183,14 +199,22 @@ export function RotationFigure({
   return <Cube cube={opts[choice - 1] ?? target} size={88} />;
 }
 
-export function PipFace({ n, size = 40 }: { n: number; size?: number }) {
+export function GlyphFace({ n, size = 40 }: { n: number; size?: number }) {
   return (
     <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden>
       <rect width="40" height="40" rx="6" fill={FACE} stroke={EDGE} />
-      {pipCells(n).map(([col, row], i) => {
-        const [u, v] = cellToUV(col, row);
-        return <circle key={i} cx={4 + u * 32} cy={4 + v * 32} r="4.4" fill={INK} />;
-      })}
+      <text
+        x="20"
+        y="21"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={INK}
+        fontSize="18"
+        fontWeight={700}
+        fontFamily="ui-sans-serif, system-ui, 'Segoe UI', sans-serif"
+      >
+        {faceGlyph(n)}
+      </text>
     </svg>
   );
 }
@@ -198,13 +222,13 @@ export function PipFace({ n, size = 40 }: { n: number; size?: number }) {
 export function GlyphLegend() {
   return (
     <div className="flex flex-wrap gap-3">
-      {[1, 2, 3, 4, 5, 6].map((n) => (
+      {FACE_GLYPHS.map((g, i) => (
         <div
-          key={n}
+          key={g}
           className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-moon px-2 py-1 text-bg"
         >
-          <PipFace n={n} size={28} />
-          <span className="text-xs tabular-nums">{n}</span>
+          <GlyphFace n={i + 1} size={28} />
+          <span className="text-xs">{g}</span>
         </div>
       ))}
     </div>

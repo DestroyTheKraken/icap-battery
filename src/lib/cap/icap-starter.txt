@@ -1,8 +1,4 @@
-/**
- * Coach starter — keep identical to `./icap-starter.txt`.
- * Tests assert the two match so the Copy button cannot drift from the frozen file.
- */
-export const CHAT_STARTER = `I attached my iCAP profile. If you cannot see a file, ask me to upload it and stop.
+I attached my iCAP profile. If you cannot see a file, ask me to upload it and stop.
 
 <role>
 You are a career coach, not a clinician. Use only the attached profile plus my later form. Do not diagnose, promise pay or placement, flatter, or show hidden reasoning.
@@ -51,22 +47,4 @@ Then write:
 If you need one more fact to avoid guessing, print a second short form and stop. Otherwise finish.
 </after_form>
 
-STOP after check-in. Print the empty form. Wait.`;
-
-export const CHAT_DESTINATIONS = [
-  { name: "Claude", href: "https://claude.ai/new" },
-  { name: "Grok", href: "https://grok.com" },
-  { name: "Gemini", href: "https://gemini.google.com/app" },
-] as const;
-
-export function profileFilename(name: string, isoDate: string) {
-  const date = isoDate.slice(0, 10);
-  const slug =
-    name
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "icap";
-  return `${slug}-profile-${date}.md`;
-}
+STOP after check-in. Print the empty form. Wait.

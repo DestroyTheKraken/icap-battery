@@ -7,7 +7,19 @@ export type CubeFaces = {
   R: number;
 };
 
-/** Right-handed die: 1 opposite 6, 2 opposite 5, 3 opposite 4. */
+/**
+ * Six distinct face marks (different glyph on each side).
+ * Indices 1–6 map to these glyphs. Greek capitals stay visually distinct
+ * under isometric foreshortening better than pip dice.
+ */
+export const FACE_GLYPHS = ["Α", "Β", "Γ", "Δ", "Ε", "Ζ"] as const;
+
+export function faceGlyph(n: number): string {
+  const i = ((Math.floor(n) - 1) % 6 + 6) % 6;
+  return FACE_GLYPHS[i]!;
+}
+
+/** Canonical right-handed cube: 1 opposite 6, 2 opposite 5, 3 opposite 4. */
 export const CANON: CubeFaces = { U: 1, D: 6, F: 2, B: 5, L: 4, R: 3 };
 
 export function rotY(c: CubeFaces): CubeFaces {
@@ -31,7 +43,7 @@ export function oppositesOk(c: CubeFaces) {
   return c.U + c.D === 7 && c.F + c.B === 7 && c.L + c.R === 7;
 }
 
-/** 24 orientations of a right-handed die (6 faces up × 4 twists). */
+/** 24 orientations of a right-handed cube (6 faces up × 4 twists). */
 export function allRightHanded(): CubeFaces[] {
   const tops: CubeFaces[] = [
     CANON,
@@ -52,7 +64,7 @@ export function allRightHanded(): CubeFaces[] {
   return result;
 }
 
-/** 24 left-handed (mirror) orientations — not reachable by rotating a RH die. */
+/** 24 left-handed (mirror) orientations — not reachable by rotating a RH cube. */
 export function allLeftHanded(): CubeFaces[] {
   return allRightHanded().map(mirrorLR);
 }
@@ -62,20 +74,29 @@ export function isRightHandedView(c: CubeFaces): boolean {
   return rh.has(visKey(c));
 }
 
-/** Broken die: visible faces that violate opposite-sum-7 (impossible physical die). */
-function impossibleView(seed: number, n: number): CubeFaces {
-  const base = makeCube(seed + n + 3);
-  const faces = [1, 2, 3, 4, 5, 6];
-  const pick = (offset: number) => faces[(seed + n + offset) % 6]!;
-  // Force U+D ≠ 7 and keep a distinct visible triple.
-  return {
-    U: pick(0),
-    D: pick(0), // same as U → opposite sum ≠ 7
-    F: pick(1 + (n % 4)),
-    B: pick(2 + (n % 3)),
-    L: pick(3),
-    R: pick(4),
-  };
+/** Visible U/F/R triples that occur on some physical cube (RH or LH). */
+function validVisibleKeys(): Set<string> {
+  return new Set([...allRightHanded(), ...allLeftHanded()].map(visKey));
+}
+
+/** All U/F/R triples that cannot appear on any physical cube corner. */
+function allImpossibleVisibleTriples(): Array<[number, number, number]> {
+  const valid = validVisibleKeys();
+  const out: Array<[number, number, number]> = [];
+  for (let u = 1; u <= 6; u++) {
+    for (let f = 1; f <= 6; f++) {
+      for (let r = 1; r <= 6; r++) {
+        if (valid.has(`${u}:${f}:${r}`)) continue;
+        out.push([u, f, r]);
+      }
+    }
+  }
+  return out;
+}
+
+function cubeFromVisible(u: number, f: number, r: number): CubeFaces {
+  // Hidden faces are arbitrary; only U/F/R are drawn.
+  return { U: u, D: u, F: f, B: f, L: r, R: r };
 }
 
 export function makeCube(seed: number): CubeFaces {
@@ -84,10 +105,11 @@ export function makeCube(seed: number): CubeFaces {
 }
 
 /**
- * Eight response options for a die-rotation item.
- * Exactly one option is a right-handed rotation of the target; the rest are
- * mirrors and/or impossible face configs. Other RH orientations must never
- * appear — on a standard die every RH view is a valid rotation of every other.
+ * Eight response options for a cube-rotation item.
+ * Exactly one option is a right-handed rotation of the target.
+ * Distractors: direct mirror of the target, then views whose visible
+ * U/F/R triple is impossible on any physical cube — so they cannot look
+ * like an alternate correct turn once each face has a unique glyph.
  */
 export function cubeOptions(seed: number, answer: number): CubeFaces[] {
   const target = makeCube(seed);
@@ -97,47 +119,38 @@ export function cubeOptions(seed: number, answer: number): CubeFaces[] {
   const seen = new Set<string>([visKey(target), visKey(correct)]);
   const rest: CubeFaces[] = [];
 
-  const lh = allLeftHanded();
-  const start = ((seed % lh.length) + lh.length) % lh.length;
-  for (let n = 0; n < lh.length && rest.length < 7; n++) {
-    const c = lh[(start + n) % lh.length]!;
-    const k = visKey(c);
+  const mirrored = mirrorLR(target);
+  if (!seen.has(visKey(mirrored))) {
+    seen.add(visKey(mirrored));
+    rest.push(mirrored);
+  }
+
+  // Prefer varied foils: distinct-but-impossible corners first, then duplicates.
+  const pool = allImpossibleVisibleTriples().slice().sort((a, b) => {
+    const da = new Set(a).size;
+    const db = new Set(b).size;
+    if (da !== db) return db - da; // more distinct marks first
+    return a[0]! + a[1]! * 7 + a[2]! * 13 - (b[0]! + b[1]! * 7 + b[2]! * 13);
+  });
+  const start = ((seed * 13) % pool.length + pool.length) % pool.length;
+  for (let n = 0; n < pool.length && rest.length < 7; n++) {
+    const [u, f, r] = pool[(start + n * 17) % pool.length]!;
+    const k = `${u}:${f}:${r}`;
     if (seen.has(k)) continue;
     seen.add(k);
-    rest.push(c);
+    rest.push(cubeFromVisible(u, f, r));
   }
 
-  let guard = 0;
-  while (rest.length < 7 && guard < 32) {
-    const bad = impossibleView(seed, rest.length + guard);
-    const k = visKey(bad);
-    guard++;
-    if (seen.has(k) || isRightHandedView(bad)) continue;
-    seen.add(k);
-    rest.push(bad);
-  }
-
-  let fill = 0;
+  // Should be unreachable (168 impossible triples); keep slots defined.
   while (rest.length < 7) {
-    const filler: CubeFaces = {
-      U: 1 + (fill % 6),
-      D: 1 + (fill % 6),
-      F: 1 + ((fill + 1) % 6),
-      B: 1 + ((fill + 2) % 6),
-      L: 1 + ((fill + 3) % 6),
-      R: 1 + ((fill + 4) % 6),
-    };
-    fill++;
+    const filler = cubeFromVisible(1, 1, 1 + rest.length);
     const k = visKey(filler);
-    if (seen.has(k) || isRightHandedView(filler)) {
-      if (fill > 64) {
-        rest.push(filler);
-        break;
-      }
-      continue;
+    if (seen.has(k)) {
+      rest.push(cubeFromVisible(2, 2, 2 + rest.length));
+    } else {
+      seen.add(k);
+      rest.push(filler);
     }
-    seen.add(k);
-    rest.push(filler);
   }
 
   const slot = Math.min(7, Math.max(0, answer - 1));
@@ -149,7 +162,7 @@ export function cubeOptions(seed: number, answer: number): CubeFaces[] {
   return slots;
 }
 
-/** Pip cells on a 3×3 face grid (col, row). */
+/** @deprecated pip layout kept for any legacy callers; rotation UI uses FACE_GLYPHS. */
 export function pipCells(n: number): Array<[number, number]> {
   const k = ((n - 1) % 6) + 1;
   switch (k) {

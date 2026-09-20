@@ -35,6 +35,13 @@
   --sky-opacity: 0.9;
 }
 
+/* Motion tokens outside @theme — multi-layer shadows break if registered as theme props */
+:root {
+  --ease-out-soft: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-med: 220ms;
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -44,12 +51,16 @@
   body,
   #app {
     min-height: 100%;
-    background: var(--color-bg);
     color: var(--color-fg);
+  }
+  html,
+  body {
+    background-color: #000000;
   }
   body {
     font-family: var(--font-sans);
     line-height: 1.5;
+    min-height: 100dvh;
   }
   h1,
   h2,
@@ -75,34 +86,186 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+
+  .panel:hover,
+  .interactive:hover,
+  .nav-link:hover,
+  .choice-tile:hover {
+    transform: none !important;
+  }
+}
+
+/*
+ * Fixed viewport sky for every AppShell page (Hub / Sources / Profile / Take).
+ * Uses a position:fixed box + background-size:cover — NOT background-attachment,
+ * NOT <img object-fit> (both fail or leave gaps in Konqueror).
+ */
+.sky-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: #000000;
+  /* Literal stretch so the sky always fills the viewport edge-to-edge (incl. ultrawide). */
+  background-image: url("/sky-hub.jpg?v=stretch2");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 100%;
+}
+
+.sky-fixed__veil {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.48) 42%,
+    rgba(0, 0, 0, 0.82) 100%
+  );
 }
 
 .app-root {
-  background-color: var(--color-bg);
-  background-image:
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--color-bg) 28%, transparent) 0%,
-      color-mix(in oklab, var(--color-bg) 48%, transparent) 42%,
-      color-mix(in oklab, var(--color-bg) 82%, transparent) 100%
-    ),
-    url("/sky-hub.jpg");
-  background-size: cover, cover;
-  background-position: 12% 38%, 12% 38%;
-  background-attachment: fixed, fixed;
-  background-repeat: no-repeat;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  min-height: 100dvh;
+  width: 100%;
+  background-color: transparent;
 }
 
 .lab-grid {
+  position: relative;
+  z-index: 0;
+  min-height: 100dvh;
+  background-color: transparent;
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px);
+    linear-gradient(to right, rgba(253, 244, 227, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(253, 244, 227, 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
+/* Shared surfaces — soft lift + Accent 1 glow (rgba avoids Tailwind color-mix nesting bugs) */
 .panel {
-  background: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  background: rgba(31, 34, 40, 0.78);
   backdrop-filter: blur(12px);
+  box-shadow: 0 0 0 1px rgba(51, 58, 75, 0.7);
+  transition:
+    border-color var(--duration-med) var(--ease-out-soft),
+    box-shadow var(--duration-med) var(--ease-out-soft),
+    transform var(--duration-med) var(--ease-out-soft),
+    background-color var(--duration-med) var(--ease-out-soft);
+}
+
+.panel:hover {
+  border-color: rgba(224, 64, 10, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 18px rgba(224, 64, 10, 0.12),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+  transform: translateY(-1px);
+}
+
+.panel-accent {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.2),
+    0 0 18px rgba(224, 64, 10, 0.12);
+}
+
+.panel-accent:hover {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.32),
+    0 0 24px rgba(224, 64, 10, 0.2),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.interactive {
+  transition:
+    color var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    border-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-out-soft),
+    opacity var(--duration-fast) var(--ease-out-soft);
+}
+
+.interactive:hover {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 16px rgba(224, 64, 10, 0.1);
+}
+
+.interactive:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn-glow {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.18),
+    0 0 16px rgba(224, 64, 10, 0.12);
+}
+
+.btn-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.3),
+    0 0 22px rgba(224, 64, 10, 0.2);
+}
+
+.tab-active-glow[data-state="active"] {
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 16px rgba(224, 64, 10, 0.1);
+}
+
+.nav-link {
+  transition:
+    color var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
+}
+
+.nav-link:hover {
+  color: var(--color-fg);
+  background: rgba(42, 46, 54, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 16px rgba(224, 64, 10, 0.1);
+}
+
+.choice-tile {
+  transition:
+    border-color var(--duration-fast) var(--ease-out-soft),
+    color var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-out-soft);
+}
+
+.choice-tile:hover {
+  border-color: rgba(224, 64, 10, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 16px rgba(224, 64, 10, 0.1);
+}
+
+.choice-tile:active {
+  transform: scale(0.98);
+}
+
+.choice-tile.is-selected,
+.choice-tile[aria-pressed="true"] {
+  border-color: rgba(224, 64, 10, 0.8);
+  box-shadow:
+    0 0 0 1px rgba(224, 64, 10, 0.16),
+    0 0 16px rgba(224, 64, 10, 0.1);
 }
 
 .likert-track {

@@ -38,3 +38,9 @@ dot-prettierrc.txt
 /tmp/
 playwright-report/
 test-results/
+
+# Intermediate sky crop experiments (final sky-hub.jpg is committed)
+public/sky-hub-16x9.jpg
+public/sky-hub-framed.jpg
+public/sky-hub-moonfocus.jpg
+public/sky-hub-tight.jpg
