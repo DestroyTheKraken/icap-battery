@@ -4,12 +4,16 @@ import { Check, Copy, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CHAT_DESTINATIONS, CHAT_STARTER, profileFilename } from "@/lib/cap/chat-prompt";
 import { downloadText, sessionMarkdown } from "@/lib/cap/export-md";
+import { PILOT_FEEDBACK_FORM_URL } from "@/lib/cap/pilot";
 import { useCapStore } from "@/lib/cap/store";
 import type { CapSession } from "@/lib/cap/types";
+
+const surveyReady = !PILOT_FEEDBACK_FORM_URL.includes("REPLACE_WITH_YOUR_FORM_ID");
 
 export function WhatsNext({ session }: { session: CapSession | null }) {
   const takerName = useCapStore((s) => s.takerName);
   const setTakerName = useCapStore((s) => s.setTakerName);
+  const consent = useCapStore((s) => s.consent);
   const [copied, setCopied] = useState<"prompt" | "file" | null>(null);
   const [md, setMd] = useState<string | null>(null);
   const when = (session?.finishedAt ?? session?.startedAt ?? new Date().toISOString()).slice(0, 10);
@@ -17,7 +21,7 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
   const ready = Boolean(session);
 
   const exportProfile = async () => {
-    const text = sessionMarkdown(session, takerName);
+    const text = sessionMarkdown(session, takerName, consent);
     setMd(text);
     downloadText(filename, text);
     try {
@@ -142,6 +146,26 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
           </div>
         </li>
       </ol>
+
+      <div className="mt-8 border-t border-border pt-5">
+        <p className="text-xs uppercase tracking-[0.18em] text-subtle">Pilot feedback</p>
+        <p className="mt-2 text-sm text-muted">
+          After you export, please send a short survey (about one minute). It helps improve iCAP
+          and lets Joshua follow up if you opt in with your email.
+        </p>
+        {surveyReady ? (
+          <Button asChild variant="outline" className="mt-4">
+            <a href={PILOT_FEEDBACK_FORM_URL} target="_blank" rel="noreferrer">
+              Open feedback survey
+              <ExternalLink className="size-4" />
+            </a>
+          </Button>
+        ) : (
+          <p className="mt-3 text-xs text-subtle">
+            Survey link will appear here once the Google Form URL is set in the pilot config.
+          </p>
+        )}
+      </div>
 
       <div className="mt-8 border-t border-border pt-5">
         <p className="text-xs uppercase tracking-[0.18em] text-subtle">Then</p>

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CapSession, CareerAnalysis, InstrumentId, InstrumentResult } from "./types";
 import { BATTERY_ORDER } from "./instruments";
+import type { PilotConsentRecord } from "./pilot";
 
 function uid() {
   return crypto.randomUUID();
@@ -10,7 +11,9 @@ function uid() {
 interface CapState {
   takerName: string;
   session: CapSession | null;
+  consent: PilotConsentRecord | null;
   setTakerName: (name: string) => void;
+  acceptConsent: (record: PilotConsentRecord) => void;
   startBattery: () => void;
   startSingle: (id: InstrumentId) => void;
   saveResult: (id: InstrumentId, result: InstrumentResult) => void;
@@ -24,7 +27,9 @@ export const useCapStore = create<CapState>()(
     (set, get) => ({
       takerName: "",
       session: null,
+      consent: null,
       setTakerName: (takerName) => set({ takerName }),
+      acceptConsent: (consent) => set({ consent }),
       startBattery: () =>
         set({
           session: {

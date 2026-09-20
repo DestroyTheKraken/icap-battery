@@ -2,6 +2,7 @@ import { cautionNotes, onetUrl, rankOccupations } from "./careers.ts";
 import { HEXACO_FACTORS } from "./hexaco-items.ts";
 import { RIASEC_LABEL, RIASEC_ORDER } from "./interest-items.ts";
 import type { CapSession } from "./types.ts";
+import type { PilotConsentRecord } from "./pilot.ts";
 
 function pct(n: number) {
   return `${Math.round(n * 100)}%`;
@@ -72,7 +73,11 @@ export function validityLines(session: CapSession | null): string[] {
   ];
 }
 
-export function sessionMarkdown(session: CapSession | null, takerName = "") {
+export function sessionMarkdown(
+  session: CapSession | null,
+  takerName = "",
+  consent: PilotConsentRecord | null = null,
+) {
   const hex = session?.results.hexaco?.hexaco;
   const icar = session?.results.icar?.icar;
   const span = session?.results.aospan?.aospan;
@@ -97,11 +102,18 @@ export function sessionMarkdown(session: CapSession | null, takerName = "") {
     `- Mode: ${session?.mode ?? "none"}`,
     `- Session: ${session?.id ?? "none"}`,
     `- Status: ${session?.status ?? "idle"}`,
+  ];
+  if (consent) {
+    lines.push(
+      `- Pilot consent: ${consent.version} at ${consent.acceptedAt} (${consent.method})`,
+    );
+  }
+  lines.push(
     "",
     "_AI makes mistakes, so always double check anything AI gives you._",
     "",
     ...validityLines(session),
-  ];
+  );
 
   lines.push("## Interest (O*NET Interest Profiler Short Form)", "");
   if (interest) {

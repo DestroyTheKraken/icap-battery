@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Brain, Compass, HeartPulse, TimerReset } from "lucide-react";
+import { ConsentModal } from "@/components/cap/consent-modal";
 import { AppShell } from "@/components/cap/shell";
 import { Button } from "@/components/ui/button";
 import { ARM_COPY, INSTRUMENT_META } from "@/lib/cap/instruments";
+import { PILOT_CONSENT_VERSION } from "@/lib/cap/pilot";
 import { useCapStore } from "@/lib/cap/store";
 import type { InstrumentId } from "@/lib/cap/types";
 
@@ -37,13 +39,26 @@ const PROCESS_ARM = {
 function Home() {
   const nav = useNavigate();
   const startBattery = useCapStore((s) => s.startBattery);
+  const acceptConsent = useCapStore((s) => s.acceptConsent);
+  const consent = useCapStore((s) => s.consent);
   const session = useCapStore((s) => s.session);
   const [live, setLive] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(false);
   useEffect(() => setLive(true), []);
 
-  const goBattery = () => {
+  const beginAfterConsent = () => {
     startBattery();
+    setConsentOpen(false);
     nav({ to: "/take" });
+  };
+
+  const goBattery = () => {
+    const consentOk = consent?.version === PILOT_CONSENT_VERSION;
+    if (!consentOk) {
+      setConsentOpen(true);
+      return;
+    }
+    beginAfterConsent();
   };
 
   const renderArm = (arm: (typeof TOP_ARMS)[number] | typeof PROCESS_ARM) => (
@@ -141,6 +156,15 @@ function Home() {
         <div className="grid items-stretch gap-4 lg:grid-cols-3">{TOP_ARMS.map(renderArm)}</div>
         {renderArm(PROCESS_ARM)}
       </div>
+
+      <ConsentModal
+        open={consentOpen}
+        onCancel={() => setConsentOpen(false)}
+        onAccept={(record) => {
+          acceptConsent(record);
+          beginAfterConsent();
+        }}
+      />
     </AppShell>
   );
 }
