@@ -8,11 +8,11 @@ export type CubeFaces = {
 };
 
 /**
- * Six distinct face marks (different glyph on each side).
- * Indices 1–6 map to these glyphs. Greek capitals stay visually distinct
- * under isometric foreshortening better than pip dice.
+ * Six distinct face marks — one per side of the die.
+ * Card-suit / game set stays readable when foreshortened on isometric faces.
+ * Indices 1–6 map to these glyphs (never reuse a glyph on two faces of one cube).
  */
-export const FACE_GLYPHS = ["Α", "Β", "Γ", "Δ", "Ε", "Ζ"] as const;
+export const FACE_GLYPHS = ["♣️", "♦️", "♥️", "♠️", "♟️", "🎱"] as const;
 
 export function faceGlyph(n: number): string {
   const i = ((Math.floor(n) - 1) % 6 + 6) % 6;
@@ -41,6 +41,11 @@ export function visKey(c: CubeFaces) {
 
 export function oppositesOk(c: CubeFaces) {
   return c.U + c.D === 7 && c.F + c.B === 7 && c.L + c.R === 7;
+}
+
+/** True when the three visible faces use three different marks. */
+export function visibleMarksDistinct(c: CubeFaces): boolean {
+  return new Set([c.U, c.F, c.R]).size === 3;
 }
 
 /** 24 orientations of a right-handed cube (6 faces up × 4 twists). */
@@ -79,13 +84,18 @@ function validVisibleKeys(): Set<string> {
   return new Set([...allRightHanded(), ...allLeftHanded()].map(visKey));
 }
 
-/** All U/F/R triples that cannot appear on any physical cube corner. */
-function allImpossibleVisibleTriples(): Array<[number, number, number]> {
+/**
+ * Impossible U/F/R corners that still use three *different* face marks.
+ * Duplicate-mark foils are banned — they look like broken dice and confuse takers.
+ */
+function distinctImpossibleTriples(): Array<[number, number, number]> {
   const valid = validVisibleKeys();
   const out: Array<[number, number, number]> = [];
   for (let u = 1; u <= 6; u++) {
     for (let f = 1; f <= 6; f++) {
+      if (f === u) continue;
       for (let r = 1; r <= 6; r++) {
+        if (r === u || r === f) continue;
         if (valid.has(`${u}:${f}:${r}`)) continue;
         out.push([u, f, r]);
       }
@@ -95,8 +105,10 @@ function allImpossibleVisibleTriples(): Array<[number, number, number]> {
 }
 
 function cubeFromVisible(u: number, f: number, r: number): CubeFaces {
-  // Hidden faces are arbitrary; only U/F/R are drawn.
-  return { U: u, D: u, F: f, B: f, L: r, R: r };
+  // Assign hidden faces to the remaining three IDs so the whole die still has 1–6 once each.
+  const used = new Set([u, f, r]);
+  const rest = [1, 2, 3, 4, 5, 6].filter((n) => !used.has(n));
+  return { U: u, D: rest[0]!, F: f, B: rest[1]!, L: rest[2]!, R: r };
 }
 
 export function makeCube(seed: number): CubeFaces {
@@ -107,9 +119,8 @@ export function makeCube(seed: number): CubeFaces {
 /**
  * Eight response options for a cube-rotation item.
  * Exactly one option is a right-handed rotation of the target.
- * Distractors: direct mirror of the target, then views whose visible
- * U/F/R triple is impossible on any physical cube — so they cannot look
- * like an alternate correct turn once each face has a unique glyph.
+ * Every option (target-facing views) shows three distinct face marks.
+ * Distractors: mirror of the target, then distinct-but-impossible corners.
  */
 export function cubeOptions(seed: number, answer: number): CubeFaces[] {
   const target = makeCube(seed);
@@ -120,18 +131,23 @@ export function cubeOptions(seed: number, answer: number): CubeFaces[] {
   const rest: CubeFaces[] = [];
 
   const mirrored = mirrorLR(target);
-  if (!seen.has(visKey(mirrored))) {
+  if (!seen.has(visKey(mirrored)) && visibleMarksDistinct(mirrored)) {
     seen.add(visKey(mirrored));
     rest.push(mirrored);
   }
 
-  // Prefer varied foils: distinct-but-impossible corners first, then duplicates.
-  const pool = allImpossibleVisibleTriples().slice().sort((a, b) => {
-    const da = new Set(a).size;
-    const db = new Set(b).size;
-    if (da !== db) return db - da; // more distinct marks first
-    return a[0]! + a[1]! * 7 + a[2]! * 13 - (b[0]! + b[1]! * 7 + b[2]! * 13);
-  });
+  // Other left-handed orientations (still three distinct marks; not a valid RH turn).
+  const lh = allLeftHanded();
+  const lhStart = ((seed * 5) % lh.length + lh.length) % lh.length;
+  for (let n = 0; n < lh.length && rest.length < 3; n++) {
+    const c = lh[(lhStart + n) % lh.length]!;
+    const k = visKey(c);
+    if (seen.has(k) || !visibleMarksDistinct(c)) continue;
+    seen.add(k);
+    rest.push(c);
+  }
+
+  const pool = distinctImpossibleTriples();
   const start = ((seed * 13) % pool.length + pool.length) % pool.length;
   for (let n = 0; n < pool.length && rest.length < 7; n++) {
     const [u, f, r] = pool[(start + n * 17) % pool.length]!;
@@ -141,16 +157,27 @@ export function cubeOptions(seed: number, answer: number): CubeFaces[] {
     rest.push(cubeFromVisible(u, f, r));
   }
 
-  // Should be unreachable (168 impossible triples); keep slots defined.
+  // Last resort: permute unused distinct triples (should be rare).
+  let guard = 0;
+  while (rest.length < 7 && guard < 200) {
+    guard++;
+    const u = 1 + ((seed + guard) % 6);
+    const f = 1 + ((seed + guard * 3) % 6);
+    const r = 1 + ((seed + guard * 5) % 6);
+    if (new Set([u, f, r]).size !== 3) continue;
+    const k = `${u}:${f}:${r}`;
+    if (seen.has(k) || validVisibleKeys().has(k)) continue;
+    seen.add(k);
+    rest.push(cubeFromVisible(u, f, r));
+  }
+
   while (rest.length < 7) {
-    const filler = cubeFromVisible(1, 1, 1 + rest.length);
-    const k = visKey(filler);
-    if (seen.has(k)) {
-      rest.push(cubeFromVisible(2, 2, 2 + rest.length));
-    } else {
-      seen.add(k);
-      rest.push(filler);
-    }
+    // Absolute fallback — still force three distinct marks.
+    const base = (rest.length % 4) + 1;
+    const u = base;
+    const f = ((base + 1) % 6) + 1;
+    const r = ((base + 3) % 6) + 1;
+    rest.push(cubeFromVisible(u, f, r));
   }
 
   const slot = Math.min(7, Math.max(0, answer - 1));

@@ -155,7 +155,7 @@ function FaceMark({
       dominantBaseline="central"
       fill={INK}
       fontSize={fontSize}
-      fontFamily="ui-sans-serif, system-ui, 'Segoe UI', sans-serif"
+      fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
       fontWeight={700}
     >
       {faceGlyph(n)}
@@ -165,8 +165,8 @@ function FaceMark({
 
 function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
   const label = `cube ${faceGlyph(cube.U)} on top, ${faceGlyph(cube.F)} in front, ${faceGlyph(cube.R)} on the right`;
-  // Face glyphs were undersized vs the die faces; ~2× prior (14/11/9 → 28/22/18).
-  const fs = size >= 120 ? 28 : size >= 90 ? 22 : 18;
+  // Emoji marks need ample size on foreshortened faces.
+  const fs = size >= 120 ? 26 : size >= 90 ? 20 : 17;
   return (
     <svg
       viewBox="0 0 88 92"
@@ -210,9 +210,9 @@ export function GlyphFace({ n, size = 40 }: { n: number; size?: number }) {
         textAnchor="middle"
         dominantBaseline="central"
         fill={INK}
-        fontSize="18"
+        fontSize="20"
         fontWeight={700}
-        fontFamily="ui-sans-serif, system-ui, 'Segoe UI', sans-serif"
+        fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
       >
         {faceGlyph(n)}
       </text>
@@ -225,11 +225,13 @@ export function GlyphLegend() {
     <div className="flex flex-wrap gap-3">
       {FACE_GLYPHS.map((g, i) => (
         <div
-          key={g}
+          key={`${g}-${i}`}
           className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-moon px-2 py-1 text-bg"
         >
           <GlyphFace n={i + 1} size={28} />
-          <span className="text-xs">{g}</span>
+          <span className="text-sm" aria-hidden>
+            {g}
+          </span>
         </div>
       ))}
     </div>

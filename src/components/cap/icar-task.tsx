@@ -171,9 +171,10 @@ export function IcarTask({ onDone }: { onDone: (r: InstrumentResult) => void }) 
         </p>
         <p>
           Rotation items use cubes with{" "}
-          <strong className="text-fg">a different mark on each side</strong> (Greek letters Α–Ζ
-          here). Choose the option that could be a{" "}
-          <strong className="text-fg">rotation</strong> of the target cube — not a mirror.
+          <strong className="text-fg">six different marks</strong> — one fixed to each side (card
+          suits and game symbols below). Every view you see shows three different marks. Choose
+          the option that could be a <strong className="text-fg">rotation</strong> of the target
+          cube — not a mirror.
         </p>
         <GlyphLegend />
         <p className="text-sm">
