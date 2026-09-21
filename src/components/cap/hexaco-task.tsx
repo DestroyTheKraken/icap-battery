@@ -6,8 +6,8 @@ import type { InstrumentResult } from "@/lib/cap/types";
 import { cn } from "@/lib/utils";
 
 const PRACTICE = [
-  "I enjoy drinking coffee in the morning.",
-  "I prefer the windows closed at night.",
+  "I enjoy drinking coffee in the morning?",
+  "I prefer the windows closed at night?",
 ];
 
 export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }) {
@@ -44,14 +44,14 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
         onAction={() => setPhase("practice")}
       >
         <p>
-          You will see statements about yourself. Rate how much you agree, from 1 (strongly
-          disagree) to 5 (strongly agree). There are no right answers. First impression is usually
-          best. Sixty statements take most people about 10–15 minutes.
+          You will see short prompts about how you usually are. Rate how much each one sounds like
+          you, from 1 (strongly disagree) to 5 (strongly agree). There are no right answers. First
+          impression is usually best. Sixty items take most people about 10–15 minutes.
         </p>
         <p>
-          Two unscored practice items come first so you can feel the scale. The scored inventory is
-          60 public-domain IPIP statements. Nothing is recorded until you finish practice and start
-          the scored block.
+          Two unscored practice items come first so you can feel the scale. The scored block uses 60
+          public-domain personality prompts. Nothing is recorded until you finish practice and start
+          the scored items.
         </p>
         <CitationBlock id="hexaco" />
       </InstrumentIntro>
