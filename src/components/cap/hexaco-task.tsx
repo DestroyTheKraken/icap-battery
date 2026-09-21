@@ -6,8 +6,8 @@ import type { InstrumentResult } from "@/lib/cap/types";
 import { cn } from "@/lib/utils";
 
 const PRACTICE = [
-  "I enjoy drinking coffee in the morning?",
-  "I prefer the windows closed at night?",
+  "I enjoy drinking coffee in the morning.",
+  "I prefer the windows closed at night.",
 ];
 
 export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }) {
@@ -44,14 +44,15 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
         onAction={() => setPhase("practice")}
       >
         <p>
-          You will see short prompts about how you usually are. Rate how much each one sounds like
-          you, from 1 (strongly disagree) to 5 (strongly agree). There are no right answers. First
-          impression is usually best. Sixty items take most people about 10–15 minutes.
+          <strong className="text-fg">How to read each item:</strong> every line is a statement
+          about <em>you</em> (written as “I …”). Decide how true it is for you, then rate your
+          agreement from 1 (strongly disagree) to 5 (strongly agree). You are not answering about
+          someone else, and you are not being told what to do — you are describing yourself.
         </p>
         <p>
-          Two unscored practice items come first so you can feel the scale. The scored block uses 60
-          public-domain personality prompts. Nothing is recorded until you finish practice and start
-          the scored items.
+          There are no right answers. First impression is usually best. Sixty statements take most
+          people about 10–15 minutes. Two unscored practice items come first so you can feel the
+          scale. Nothing is recorded until you finish practice and start the scored block.
         </p>
         <CitationBlock id="hexaco" />
       </InstrumentIntro>
@@ -64,6 +65,7 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
         <PracticeBanner>
           Practice {pi + 1} / {PRACTICE.length} · not scored
         </PracticeBanner>
+        <p className="text-sm text-muted">About you — how much do you agree with this statement?</p>
         <p className="font-display text-2xl leading-snug md:text-3xl">{PRACTICE[pi]}</p>
         {likert((v) => {
           void v;
@@ -124,6 +126,7 @@ export function HexacoTask({ onDone }: { onDone: (r: InstrumentResult) => void }
           style={{ width: `${((i + 1) / items.length) * 100}%` }}
         />
       </div>
+      <p className="text-sm text-muted">About you — how much do you agree with this statement?</p>
       <p className="font-display text-2xl leading-snug text-fg md:text-3xl">{item.text}</p>
       {likert(pick)}
     </section>
