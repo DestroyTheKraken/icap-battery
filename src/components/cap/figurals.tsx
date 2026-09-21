@@ -136,37 +136,36 @@ function map(axis: Axis, u: number, v: number) {
   };
 }
 
-/** Center glyph on a foreshortened face (unique mark per face). */
-function FaceMark({
-  n,
-  axis,
-  fontSize,
-}: {
-  n: number;
-  axis: Axis;
-  fontSize: number;
-}) {
-  const p = map(axis, 0.5, 0.5);
+/**
+ * Paint the mark in the face's own UV space so it skews/rotates with the cube
+ * instead of staying screen-upright.
+ */
+function FaceMark({ n, axis }: { n: number; axis: Axis }) {
+  const [ox, oy] = axis.origin;
+  const [ux, uy] = axis.u;
+  const [vx, vy] = axis.v;
+  // Local face is the unit square mapped by matrix(u, v, origin).
+  // fontSize is in local face units (face ≈ 1×1).
   return (
-    <text
-      x={p.x}
-      y={p.y}
-      textAnchor="middle"
-      dominantBaseline="central"
-      fill={INK}
-      fontSize={fontSize}
-      fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
-      fontWeight={700}
-    >
-      {faceGlyph(n)}
-    </text>
+    <g transform={`matrix(${ux} ${uy} ${vx} ${vy} ${ox} ${oy})`}>
+      <text
+        x={0.5}
+        y={0.52}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={INK}
+        fontSize={0.46}
+        fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
+        fontWeight={700}
+      >
+        {faceGlyph(n)}
+      </text>
+    </g>
   );
 }
 
 function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
   const label = `cube ${faceGlyph(cube.U)} on top, ${faceGlyph(cube.F)} in front, ${faceGlyph(cube.R)} on the right`;
-  // Emoji marks need ample size on foreshortened faces.
-  const fs = size >= 120 ? 26 : size >= 90 ? 20 : 17;
   return (
     <svg
       viewBox="0 0 88 92"
@@ -178,9 +177,9 @@ function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
       <polygon points="44,8 80,28 44,48 8,28" fill={FACE} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="8,28 44,48 44,84 8,64" fill={FACE_F} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="44,48 80,28 80,64 44,84" fill={FACE_R} stroke={EDGE} strokeWidth="1.4" />
-      <FaceMark n={cube.U} axis={TOP} fontSize={fs} />
-      <FaceMark n={cube.F} axis={FRONT} fontSize={fs} />
-      <FaceMark n={cube.R} axis={RIGHT} fontSize={fs} />
+      <FaceMark n={cube.U} axis={TOP} />
+      <FaceMark n={cube.F} axis={FRONT} />
+      <FaceMark n={cube.R} axis={RIGHT} />
     </svg>
   );
 }
