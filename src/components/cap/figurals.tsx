@@ -165,7 +165,8 @@ function FaceMark({
 
 function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
   const label = `cube ${faceGlyph(cube.U)} on top, ${faceGlyph(cube.F)} in front, ${faceGlyph(cube.R)} on the right`;
-  const fs = size >= 120 ? 14 : size >= 90 ? 11 : 9;
+  // Face glyphs were undersized vs the die faces; ~2× prior (14/11/9 → 28/22/18).
+  const fs = size >= 120 ? 28 : size >= 90 ? 22 : 18;
   return (
     <svg
       viewBox="0 0 88 92"
