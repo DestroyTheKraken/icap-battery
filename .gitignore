@@ -36,6 +36,7 @@ dot-prettierrc.txt
 
 # Test / smoke outputs
 /tmp/
+tmp-qa/
 playwright-report/
 test-results/
 

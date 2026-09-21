@@ -2,9 +2,11 @@ import type { IcarItem } from "@/lib/cap/icar-items";
 import {
   cubeOptions,
   faceGlyph,
+  faceTwist,
   FACE_GLYPHS,
   makeCube,
   type CubeFaces,
+  type FaceSlot,
 } from "@/lib/cap/cube";
 
 const INK = "#000000";
@@ -137,29 +139,42 @@ function map(axis: Axis, u: number, v: number) {
 }
 
 /**
- * Paint the mark in the face's own UV space so it skews/rotates with the cube
- * instead of staying screen-upright.
+ * Paint the mark in the face's own UV space so it skews with the isometric face,
+ * then spin it in-plane so the tip follows the die’s painted orientation.
  */
-function FaceMark({ n, axis }: { n: number; axis: Axis }) {
+function FaceMark({
+  n,
+  axis,
+  tip,
+  slot,
+}: {
+  n: number;
+  axis: Axis;
+  tip: FaceSlot;
+  slot: "U" | "F" | "R";
+}) {
   const [ox, oy] = axis.origin;
   const [ux, uy] = axis.u;
   const [vx, vy] = axis.v;
+  const twist = faceTwist(slot, tip);
   // Local face is the unit square mapped by matrix(u, v, origin).
   // fontSize is in local face units (face ≈ 1×1).
   return (
     <g transform={`matrix(${ux} ${uy} ${vx} ${vy} ${ox} ${oy})`}>
-      <text
-        x={0.5}
-        y={0.52}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill={INK}
-        fontSize={0.46}
-        fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
-        fontWeight={700}
-      >
-        {faceGlyph(n)}
-      </text>
+      <g transform={`rotate(${twist * 90} 0.5 0.5)`}>
+        <text
+          x={0.5}
+          y={0.52}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill={INK}
+          fontSize={0.46}
+          fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif"
+          fontWeight={700}
+        >
+          {faceGlyph(n)}
+        </text>
+      </g>
     </g>
   );
 }
@@ -177,9 +192,9 @@ function Cube({ cube, size = 96 }: { cube: CubeFaces; size?: number }) {
       <polygon points="44,8 80,28 44,48 8,28" fill={FACE} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="8,28 44,48 44,84 8,64" fill={FACE_F} stroke={EDGE} strokeWidth="1.4" />
       <polygon points="44,48 80,28 80,64 44,84" fill={FACE_R} stroke={EDGE} strokeWidth="1.4" />
-      <FaceMark n={cube.U} axis={TOP} />
-      <FaceMark n={cube.F} axis={FRONT} />
-      <FaceMark n={cube.R} axis={RIGHT} />
+      <FaceMark n={cube.U} axis={TOP} tip={cube.tipU} slot="U" />
+      <FaceMark n={cube.F} axis={FRONT} tip={cube.tipF} slot="F" />
+      <FaceMark n={cube.R} axis={RIGHT} tip={cube.tipR} slot="R" />
     </svg>
   );
 }

@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  CANON,
   FACE_GLYPHS,
   allLeftHanded,
   allRightHanded,
   cubeOptions,
   faceGlyph,
+  faceTwist,
   isRightHandedView,
   makeCube,
   mirrorLR,
   oppositesOk,
+  rotX,
+  rotY,
+  rotZ,
   visKey,
   visibleMarksDistinct,
 } from "./cube.ts";
@@ -19,6 +24,37 @@ test("six distinct face glyphs", () => {
   assert.equal(new Set(FACE_GLYPHS).size, 6);
   assert.equal(faceGlyph(1), FACE_GLYPHS[0]);
   assert.equal(faceGlyph(6), FACE_GLYPHS[5]);
+});
+
+test("face tips spin with the die instead of staying fixed in UV", () => {
+  assert.equal(CANON.tipU, "B");
+  assert.equal(faceTwist("U", CANON.tipU), 0);
+
+  const y1 = rotY(CANON);
+  assert.equal(y1.U, CANON.U);
+  assert.equal(y1.tipU, "R");
+  assert.equal(faceTwist("U", y1.tipU), 1);
+
+  const y2 = rotY(y1);
+  assert.equal(y2.tipU, "F");
+  assert.equal(faceTwist("U", y2.tipU), 2);
+
+  const x1 = rotX(CANON);
+  // Face that was Back (tip toward U) lands on Up; tip label remaps with the body.
+  assert.equal(x1.U, CANON.B);
+  assert.equal(x1.tipU, "F");
+  assert.ok(faceTwist("U", x1.tipU) !== 0);
+
+  const z1 = rotZ(CANON);
+  assert.equal(z1.F, CANON.F);
+  assert.equal(z1.tipF, "R");
+  assert.equal(faceTwist("F", z1.tipF), 1);
+});
+
+test("24 RH orientations carry consistent tips (unique U/F/R + tip triple)", () => {
+  const all = allRightHanded();
+  const tipKeys = new Set(all.map((c) => `${visKey(c)}|${c.tipU}:${c.tipF}:${c.tipR}`));
+  assert.equal(tipKeys.size, 24);
 });
 
 test("24 right-handed orientations, unique visible triples, opposites sum to 7", () => {
