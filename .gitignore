@@ -46,3 +46,5 @@ public/sky-hub-moonfocus.jpg
 public/sky-hub-tight.jpg
 .vercel
 .env*
+public/brand/*.pbm
+public/brand/logo-mark-raw.svg
