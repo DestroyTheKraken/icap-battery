@@ -29,13 +29,13 @@ export function AppShell({
                 aria-label="iCAP Battery home"
               >
                 <img
-                  src="/brand/mark-header.png"
+                  src="/brand/favicon-source.png"
                   alt=""
-                  className="h-8 w-8 object-contain"
+                  className="h-8 w-8 rounded-[6px] object-contain"
                   width={32}
                   height={32}
                 />
-                <span className="font-display text-lg tracking-tight">iCAP</span>
+                <span className="font-display text-lg tracking-tight text-accent">iCAP</span>
                 <span className="text-xs uppercase tracking-[0.2em] text-muted">Battery</span>
               </Link>
               <nav className="flex items-center gap-1 text-sm">

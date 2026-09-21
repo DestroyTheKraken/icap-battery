@@ -44,3 +44,5 @@ public/sky-hub-16x9.jpg
 public/sky-hub-framed.jpg
 public/sky-hub-moonfocus.jpg
 public/sky-hub-tight.jpg
+.vercel
+.env*

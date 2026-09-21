@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, Copy, Download, ExternalLink } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CHAT_DESTINATIONS, CHAT_STARTER, profileFilename } from "@/lib/cap/chat-prompt";
 import { downloadText, sessionMarkdown } from "@/lib/cap/export-md";
 import { PILOT_FEEDBACK_FORM_URL } from "@/lib/cap/pilot";
+import { sendProfileEmail } from "@/lib/cap/send-profile-email";
 import { useCapStore } from "@/lib/cap/store";
 import type { CapSession } from "@/lib/cap/types";
 
@@ -16,6 +17,9 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
   const consent = useCapStore((s) => s.consent);
   const [copied, setCopied] = useState<"prompt" | "file" | null>(null);
   const [md, setMd] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const when = (session?.finishedAt ?? session?.startedAt ?? new Date().toISOString()).slice(0, 10);
   const filename = profileFilename(takerName, when);
   const ready = Boolean(session);
@@ -29,6 +33,35 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
       setCopied("file");
     } catch {
       setCopied(null);
+    }
+
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setEmailStatus("error");
+      setEmailError("Add your email above so we can send your profile file.");
+      return;
+    }
+
+    setEmailStatus("sending");
+    setEmailError(null);
+    try {
+      const result = await sendProfileEmail({
+        data: {
+          email: trimmed,
+          name: takerName,
+          filename,
+          markdown: text,
+        },
+      });
+      if (!result.ok) {
+        setEmailStatus("error");
+        setEmailError(result.error);
+        return;
+      }
+      setEmailStatus("sent");
+    } catch (err) {
+      setEmailStatus("error");
+      setEmailError(err instanceof Error ? err.message : "Could not send email.");
     }
   };
 
@@ -94,10 +127,40 @@ export function WhatsNext({ session }: { session: CapSession | null }) {
                 className="h-11 w-full max-w-md rounded-[var(--radius-sm)] border border-border bg-bg px-3 text-sm text-fg placeholder:text-subtle"
               />
             </label>
-            <Button className="mt-3" onClick={exportProfile} disabled={!ready}>
-              <Download className="size-4" />
-              Export profile
+            <label className="mt-2 block">
+              <span className="sr-only">Email for profile delivery</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailStatus !== "idle") setEmailStatus("idle");
+                }}
+                placeholder="Email (we send the file + survey link)"
+                autoComplete="email"
+                className="h-11 w-full max-w-md rounded-[var(--radius-sm)] border border-border bg-bg px-3 text-sm text-fg placeholder:text-subtle"
+              />
+            </label>
+            <Button
+              className="mt-3"
+              onClick={exportProfile}
+              disabled={!ready || emailStatus === "sending"}
+            >
+              {emailStatus === "sending" ? (
+                <Mail className="size-4 animate-pulse" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {emailStatus === "sending" ? "Exporting & emailing…" : "Export profile"}
             </Button>
+            {emailStatus === "sent" && (
+              <p className="mt-2 text-xs text-fg">
+                File downloaded, and a copy was emailed with the survey link. Thank you.
+              </p>
+            )}
+            {emailStatus === "error" && emailError && (
+              <p className="mt-2 text-xs text-accent">{emailError}</p>
+            )}
           </div>
         </li>
         <li className="flex gap-3">
