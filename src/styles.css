@@ -112,11 +112,11 @@
   overflow: hidden;
   pointer-events: none;
   background-color: #000000;
-  /* Literal stretch so the sky always fills the viewport edge-to-edge (incl. ultrawide). */
-  background-image: url("/sky-hub.jpg?v=stretch2");
+  /* cover = fill viewport without squashing; crops edges as needed to keep proportion */
+  background-image: url("/sky-hub.jpg?v=cover3");
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 100% 100%;
+  background-size: cover;
 }
 
 .sky-fixed__veil {
